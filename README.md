@@ -1,1 +1,1 @@
-# MoP-Classic-Raid-Testing-Analysis
+# World of Warcraft Classic: Mists of Pandaria
