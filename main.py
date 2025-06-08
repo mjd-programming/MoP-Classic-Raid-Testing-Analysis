@@ -63,20 +63,23 @@ def get_damage_for_fight(code: str, id: int, delta_time: int, fight_name: str, t
         ilvl = -1
         if 'itemLevel' in player:
             ilvl = player['itemLevel']
-        damage_information.append([spec, dps, ilvl, fight_name])
+        fight_length = delta_time
+        damage_information.append([spec, dps, ilvl, fight_name, fight_length])
     return damage_information
 
-def main():
+def gather_data(report_codes):
     access_token = get_access_token().json()
-    url_code = 'CHNZxyaXjLTBcrGq'
-    fights = get_fights_from_url_code(url_code, access_token)
-    with open('my_damage.txt', 'w+') as f:
-        for fight in fights:
-            delta_time = fight['endTime'] - fight['startTime']
-            fight_name = fight['name']
-            damage_for_fight = get_damage_for_fight(url_code, fight['id'], delta_time, fight_name, access_token)
-            for player in damage_for_fight:
-                f.write(str(player) + '\n')
+    with open(report_codes, 'r+') as f:
+        for current_code in f.readlines():
+            url_code = current_code
+            fights = get_fights_from_url_code(url_code, access_token)
+            with open('my_damage.txt', 'a+') as f:
+                for fight in fights:
+                    delta_time = fight['endTime'] - fight['startTime']
+                    fight_name = fight['name']
+                    damage_for_fight = get_damage_for_fight(url_code, fight['id'], delta_time, fight_name, access_token)
+                    for player in damage_for_fight:
+                        f.write(str(player) + '\n')
 
 if __name__ == '__main__':
-    main()
+    gather_data('warcraft_logs_html.txt')

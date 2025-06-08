@@ -1,27 +1,22 @@
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
-import time
-
-# Set up headless mode (no browser window pops up)
-options = Options()
-options.headless = True
+import re
 
 # Initialize the WebDriver
-driver = webdriver.Firefox(options=options)
+driver = webdriver.Firefox()
 
 # URL to fetch
-url = 'https://classic.warcraftlogs.com/zone/reports?zone=1038'
+url_base = 'https://classic.warcraftlogs.com/zone/reports?zone=1038&page='
 
-# Open the page
-driver.get(url)
-
-# Optional: wait for JavaScript to load
-time.sleep(3)
-
-# Get the page HTML
-html = driver.page_source
-with open('warcraft_logs_html.txt', 'w+') as f:
-    f.write(html)
+for i in range(1,5):
+    print('working on page ' + str(i))
+    url = str(url_base) + str(i)
+    driver.get(url)
+    html = driver.page_source
+    fight_codes = re.findall(r'<a href="/reports/(.*?)">', html)
+    with open('warcraft_logs_html.txt', 'w+') as f:
+        for code in fight_codes:
+            f.write(code + '\n')
 
 # Clean up
 driver.quit()
