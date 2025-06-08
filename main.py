@@ -81,5 +81,6 @@ def gather_data(report_codes):
                     for player in damage_for_fight:
                         f.write(str(player) + '\n')
 
+# comment added to test git
 if __name__ == '__main__':
     gather_data('warcraft_logs_html.txt')
