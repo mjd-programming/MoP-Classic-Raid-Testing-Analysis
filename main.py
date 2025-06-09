@@ -46,6 +46,47 @@ def get_fights_from_url_code(code: str, token) -> list:
         fights.append(i)
     return fights
 
+def get_spec_from_abilities(ab):
+    specs = {
+        'aff':['Unstable Affliction', 'Agony', 'Corruption'],
+        'destro':['Incinerate', 'Immolate', 'Chaos Bolt'],
+        'bm':['Kill Command', 'Cobra Shot', 'Dire Beast'],
+        'fire':['Pyroblast', 'Combustion', 'Ignite'],
+        'arcane':['Arcane Blast', 'Arcane Missiles', 'Arcane Barrage'],
+        'survival':['Explosive Shot', 'Serpent Sting', 'Black Arrow'],
+        'feral':['Shred', 'Rip', 'Ferocious Bite'],
+        'enhance':['Stormstrike', 'Lava Lash'],
+        'shadow':['Mind Blast', 'Devouring Plague', 'Mind Flay'],
+        'demo':['Doom', 'Immolation Aura', 'Hand of Guldan'],
+        'frost_dk':['Obliterate', 'Howling Blast', 'Frost Strike'],
+        'sin':['Mutilate', 'Envenom', 'Dispatch'],
+        'balance':['Starsurge', 'Moonfire', 'Sunfire'],
+        'sub':['Hemorrhage', 'Backstab', 'Ambush'],
+        'ww':['Fists of Fury', 'Rising Sun Kick'],
+        'ret':["Templar's Verdict", 'Execution Sentence', 'Divine Storm'],
+        'arms':['Mortal Strike', 'Overpower', 'Sweeping Strikes'],
+        'ele':['Lava Burst', 'Lightning Bolt', 'Chain Lightning'],
+        'combat':['Sinister Strike', 'Revealing Strike', 'Main Gauche', 'Blade Flurry'],
+        'fury':['Bloodthirst', 'Wild Strike'],
+        'frost_m':['Frostbolt', 'Frostfire Bolt', 'Ice Lance'],
+        'marks':['Chimera Shot', 'Aimed Shot'],
+        'blood':['Death Strike', 'Heart Strike', 'Blood Boil'],
+        'unholy':['Festering Strike', 'Scourge Strike'],
+        'brew':['Keg Smash'],
+        'prot_w':['Shield Slam'],
+        'prot_p':['Shield of the Righteous'],
+        'guardian':['Maul', 'Pulverize'],
+        'disc':['Penance', 'Smite'],
+        'holy_pa':['Holy Shock', 'Holy Prism']
+    }
+    suspected_spec = ''
+    for ability in ab:
+        for spec in specs:
+            if ability in specs[spec]:
+                suspected_spec = spec
+                return suspected_spec
+    return suspected_spec
+
 def get_damage_for_fight(code: str, id: int, delta_time: int, fight_name: str, token):
     query = '''query($code:String, $fight_id:Int) {
                 reportData{
@@ -58,7 +99,17 @@ def get_damage_for_fight(code: str, id: int, delta_time: int, fight_name: str, t
     formatted_resp = resp['data']['reportData']['report']['table']['data']['entries']
     damage_information = []
     for player in formatted_resp:
-        spec = player['icon']
+        abilities = []
+        for a in player['abilities']:
+            abilities.append(a['name'])
+        top_abilities = None
+        if len(abilities) >= 5: 
+            top_abilities = abilities[:5]
+        else:
+            top_abilities = abilities
+        spec = get_spec_from_abilities(top_abilities)
+        if spec == '':
+            spec = player['icon']
         dps = round(float(player['total'] / (delta_time / 1000)), 2)
         ilvl = -1
         if 'itemLevel' in player:
