@@ -48,36 +48,34 @@ def get_fights_from_url_code(code: str, token) -> list:
 
 def get_spec_from_abilities(ab):
     specs = {
-        'aff':['Unstable Affliction', 'Agony', 'Corruption'],
-        'destro':['Incinerate', 'Immolate', 'Chaos Bolt'],
-        'bm':['Kill Command', 'Cobra Shot', 'Dire Beast'],
-        'fire':['Pyroblast', 'Combustion', 'Ignite'],
-        'arcane':['Arcane Blast', 'Arcane Missiles', 'Arcane Barrage'],
-        'survival':['Explosive Shot', 'Serpent Sting', 'Black Arrow'],
-        'feral':['Shred', 'Rip', 'Ferocious Bite'],
-        'enhance':['Stormstrike', 'Lava Lash'],
-        'shadow':['Mind Blast', 'Devouring Plague', 'Mind Flay'],
-        'demo':['Doom', 'Immolation Aura', 'Hand of Guldan'],
-        'frost_dk':['Obliterate', 'Howling Blast', 'Frost Strike'],
-        'sin':['Mutilate', 'Envenom', 'Dispatch'],
-        'balance':['Starsurge', 'Moonfire', 'Sunfire'],
-        'sub':['Hemorrhage', 'Backstab', 'Ambush'],
-        'ww':['Fists of Fury', 'Rising Sun Kick'],
-        'ret':["Templar's Verdict", 'Execution Sentence', 'Divine Storm'],
-        'arms':['Mortal Strike', 'Overpower', 'Sweeping Strikes'],
-        'ele':['Lava Burst', 'Lightning Bolt', 'Chain Lightning'],
-        'combat':['Sinister Strike', 'Revealing Strike', 'Main Gauche', 'Blade Flurry'],
-        'fury':['Bloodthirst', 'Wild Strike'],
-        'frost_m':['Frostbolt', 'Frostfire Bolt', 'Ice Lance'],
-        'marks':['Chimera Shot', 'Aimed Shot'],
-        'blood':['Death Strike', 'Heart Strike', 'Blood Boil'],
-        'unholy':['Festering Strike', 'Scourge Strike'],
-        'brew':['Keg Smash'],
-        'prot_w':['Shield Slam'],
-        'prot_p':['Shield of the Righteous'],
-        'guardian':['Maul', 'Pulverize'],
-        'disc':['Penance', 'Smite'],
-        'holy_pa':['Holy Shock', 'Holy Prism']
+        'Affliction Warlock':['Unstable Affliction', 'Agony', 'Corruption'],
+        'Destruction Warlock':['Incinerate', 'Immolate', 'Chaos Bolt'],
+        'Beastmaster Hunter':['Kill Command', 'Cobra Shot', 'Dire Beast'],
+        'Fire Mage':['Pyroblast', 'Combustion', 'Ignite'],
+        'Arcane Mage':['Arcane Blast', 'Arcane Missiles', 'Arcane Barrage'],
+        'Survival Hunter':['Explosive Shot', 'Serpent Sting', 'Black Arrow'],
+        'Feral Druid':['Shred', 'Rip', 'Ferocious Bite'],
+        'Enhancement Shaman':['Stormstrike', 'Lava Lash'],
+        'Shadow Priest':['Mind Blast', 'Devouring Plague', 'Mind Flay'],
+        'Demonology Warlock':['Doom', 'Immolation Aura', 'Hand of Guldan'],
+        'Frost DeathKnight':['Obliterate', 'Howling Blast', 'Frost Strike'],
+        'Assassination Rogue':['Mutilate', 'Envenom', 'Dispatch'],
+        'Balance Druid':['Starsurge', 'Moonfire', 'Sunfire'],
+        'Subtlety Rogue':['Hemorrhage', 'Backstab', 'Ambush'],
+        'Windwalker Monk':['Fists of Fury', 'Rising Sun Kick'],
+        'Retribution Paladin':["Templar's Verdict", 'Execution Sentence', 'Divine Storm'],
+        'Arms Warrior':['Mortal Strike', 'Overpower', 'Sweeping Strikes'],
+        'Elemental Shaman':['Lava Burst'],
+        'Combat Rogue':['Sinister Strike', 'Revealing Strike', 'Main Gauche', 'Blade Flurry'],
+        'Fury Warrior':['Bloodthirst', 'Wild Strike'],
+        'Frost Mage':['Frostbolt', 'Frostfire Bolt', 'Ice Lance'],
+        'Marksmanship Hunter':['Chimera Shot', 'Aimed Shot'],
+        'Blood DeathKnight':['Death Strike', 'Heart Strike', 'Blood Boil'],
+        'Unholy DeathKnight':['Festering Strike', 'Scourge Strike'],
+        'Brewmaster Monk':['Keg Smash'],
+        'Protection Warrior':['Shield Slam'],
+        'Protection Paladin':['Shield of the Righteous'],
+        'Guardian Druid':['Maul', 'Pulverize']
     }
     suspected_spec = ''
     for ability in ab:
@@ -109,7 +107,7 @@ def get_damage_for_fight(code: str, id: int, delta_time: int, fight_name: str, t
             top_abilities = abilities
         spec = get_spec_from_abilities(top_abilities)
         if spec == '':
-            spec = player['icon']
+            continue
         dps = round(float(player['total'] / (delta_time / 1000)), 2)
         ilvl = -1
         if 'itemLevel' in player:
