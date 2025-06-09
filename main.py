@@ -1,5 +1,5 @@
 import requests
-import json
+import csv
 
 CLIENT_ID = '9f160fff-ae6c-4460-ae41-0b0027f6c303'
 CLIENT_SECRET = 'rlLvxxf0Xqbubdvn0JSlq9y81XrZI7sTh8ZnMSHt'
@@ -63,6 +63,8 @@ def get_damage_for_fight(code: str, id: int, delta_time: int, fight_name: str, t
         ilvl = -1
         if 'itemLevel' in player:
             ilvl = player['itemLevel']
+        else:
+            continue
         fight_length = delta_time
         damage_information.append([spec, dps, ilvl, fight_name, fight_length])
     return damage_information
@@ -79,7 +81,14 @@ def gather_data(report_codes):
                     fight_name = fight['name']
                     damage_for_fight = get_damage_for_fight(url_code, fight['id'], delta_time, fight_name, access_token)
                     for player in damage_for_fight:
-                        f.write(str(player) + '\n')
+                        write_line = ''
+                        for element_index in range(len(player)):
+                            write_line += str(player[element_index])
+                            if element_index < len(player) - 1:
+                                write_line += ','
+                            else:
+                                write_line += '\n'
+                        f.write(write_line)
 
 # comment added to test git
 if __name__ == '__main__':
