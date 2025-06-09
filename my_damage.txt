@@ -1,3 +1,4 @@
+spec,dps,item_level,fight_name,fight_length
 arms,167559.82,464,The Stone Guard,186531
 ele,227098.1,471,The Stone Guard,186531
 survival,237088.7,469,The Stone Guard,186531
