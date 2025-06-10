@@ -1,33 +1,42 @@
 import requests
-import csv
 
 CLIENT_ID = '9f160fff-ae6c-4460-ae41-0b0027f6c303'
 CLIENT_SECRET = 'rlLvxxf0Xqbubdvn0JSlq9y81XrZI7sTh8ZnMSHt'
 
-authorization_uri = 'https://www.warcraftlogs.com/oauth/authorize'
 token_uri = 'https://www.warcraftlogs.com/oauth/token'
-
 public_url = 'https://www.warcraftlogs.com/api/v2/client'
 
-def get_access_token():
+
+def get_access_token(client_id: str, client_secret: str) -> any:
+    '''
+    Makes POST request to token_uri with client ID and client secret as authorization.
+    If successful response, return the received access token.
+    Else, return None.
+    '''
     data = {'grant_type':'client_credentials'}
-    auth = (CLIENT_ID, CLIENT_SECRET)
+    auth = (client_id, client_secret)
     with requests.Session() as session:
         response = session.post(token_uri, data=data, auth=auth)
         if response.status_code == 200:
             return response
-        else:
-            return None
+        return None
+    
         
-def get_information(token, query: str, **kwargs):
+def get_information(token: dict, query: str, **kwargs) -> dict:
+    '''
+    Uses the token argument as a header to make GET request with the query and other variables. Returns the response.
+    '''
     headers = {'Authorization':f'Bearer {token['access_token']}'}
     data = {'query': query, 'variables': kwargs}
     with requests.Session() as session:
         session.headers = headers
-        response = session.get(public_url, json=data)
-        return response.json()
+        return session.get(public_url, json=data).json()
+        
 
-def get_fights_from_url_code(code: str, token) -> list:
+def get_fights_from_url_code(token: dict, code: str) -> list:
+    '''
+    Specific query used to get fight information. Returns a list of all fights from the supplied log code.
+    '''
     query = '''query($code:String) {
                 reportData{
                     report(code:$code){
@@ -46,7 +55,12 @@ def get_fights_from_url_code(code: str, token) -> list:
         fights.append(i)
     return fights
 
-def get_spec_from_abilities(ab):
+
+def get_spec_from_abilities(abilities: str) -> str:
+    '''
+    Hard-coded list of popular/unique abilities used by each specialization. Returns the first spec with matching abilities.
+    Returns nothing if no specialization was matched.
+    '''
     specs = {
         'Affliction Warlock':['Unstable Affliction', 'Agony', 'Corruption'],
         'Destruction Warlock':['Incinerate', 'Immolate', 'Chaos Bolt'],
@@ -77,15 +91,17 @@ def get_spec_from_abilities(ab):
         'Protection Paladin':['Shield of the Righteous'],
         'Guardian Druid':['Maul', 'Pulverize']
     }
-    suspected_spec = ''
-    for ability in ab:
+    for ability in abilities:
         for spec in specs:
             if ability in specs[spec]:
-                suspected_spec = spec
-                return suspected_spec
-    return suspected_spec
+                return spec
+    return ''
 
-def get_damage_for_fight(code: str, id: int, delta_time: int, fight_name: str, token):
+
+def get_damage_for_fight(token: dict, code: str, id: int, delta_time: int, fight_name: str) -> list:
+    '''
+    Function used to parse fight information. Returns general information from specific fight within the given log code.
+    '''
     query = '''query($code:String, $fight_id:Int) {
                 reportData{
                     report(code:$code){
@@ -109,26 +125,26 @@ def get_damage_for_fight(code: str, id: int, delta_time: int, fight_name: str, t
         if spec == '':
             continue
         dps = round(float(player['total'] / (delta_time / 1000)), 2)
-        ilvl = -1
-        if 'itemLevel' in player:
-            ilvl = player['itemLevel']
-        else:
+        if 'itemLevel' not in player:
             continue
-        fight_length = delta_time
-        damage_information.append([spec, dps, ilvl, fight_name, fight_length])
+        ilvl = player['itemLevel']
+        damage_information.append([spec, dps, ilvl, fight_name, delta_time])
     return damage_information
 
-def gather_data(report_codes):
-    access_token = get_access_token().json()
+
+def gather_data(client_id: str, client_secret: str, report_codes: str) -> None:
+    '''
+    Main function, takes a file path containing log codes and creates a formatted file with all fights' information.
+    '''
+    access_token = get_access_token(client_id, client_secret).json()
     with open(report_codes, 'r+') as f:
         for current_code in f.readlines():
-            url_code = current_code
-            fights = get_fights_from_url_code(url_code, access_token)
+            fights = get_fights_from_url_code(access_token, current_code)
             with open('my_damage.txt', 'a+') as f:
                 for fight in fights:
                     delta_time = fight['endTime'] - fight['startTime']
                     fight_name = fight['name']
-                    damage_for_fight = get_damage_for_fight(url_code, fight['id'], delta_time, fight_name, access_token)
+                    damage_for_fight = get_damage_for_fight(access_token, current_code, fight['id'], delta_time, fight_name)
                     for player in damage_for_fight:
                         write_line = ''
                         for element_index in range(len(player)):
@@ -139,6 +155,8 @@ def gather_data(report_codes):
                                 write_line += '\n'
                         f.write(write_line)
 
-# comment added to test git
+
 if __name__ == '__main__':
-    gather_data('warcraft_logs_html.txt')
+    c_id = '' # removed for privacy
+    c_secret = '' # removed for privacy
+    gather_data(c_id, c_secret, 'warcraft_logs_html.txt')
