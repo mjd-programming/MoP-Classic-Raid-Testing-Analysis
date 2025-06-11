@@ -23,7 +23,9 @@ In this analysis, we will be looking into the raid data in hopes of gaining more
 - <ins>**Raid**</ins>: A group-focused zone within the game filled with unique non-playable characters (NPC), challenges, and rewards.
 - <ins>**Boss**</ins>: A special and reward-dropping NPC within a raid whom is greater than the other NPCs within the raid.
 - <ins>**Fight**</ins>: The encounter a group of players has with a boss that includes combat information.
-- <ins>**DPS**</ins>: Damage per second. This is the primary metric used to generally measure the success of a damage dealer.
+- <ins>**DPS**</ins>: Damage per second. This is the primary metric used to generally measure the success of a damage dealer. This can also be used to describe the damage dealer role.
+- <ins>**Tank**</ins>: A role in which the player is assigned to mitigate boss attacks and control the pace of the fight.
+- <ins>**Item Level**</ins>: A metric used to show how powerful a specific character's items are. This can also be viewed as a correlating number to a character's damage; higher item level results in higher damage.
 
 # Code
 The first step of our analysis is to gather some data on the topic. Luckily, the WoW community has created a website (WarcraftLogs) that is used to house and display this information. Likely due to the fact that the current iteration of MoP classic is a beta version, the website has not completed any analysis/visualization of their own using this data. However, the data is still housed on their site and some of it is available for public use.
@@ -92,5 +94,118 @@ For our analysis, we are accessing users' raid log data, targetting specific bos
 - For each fight within the report, provide the ID, start time and end time of the fight, and the name of the boss that was defeated.
 
 We then iterate through the returned log information and store each individual fight within a list. After all fights are iterated through, we return the list of fight information.
+
+Step 4a, create a dictionary of specializations and corresponding abilities that can be used to "define" said spec:
+
+```python
+def get_spec_from_abilities(abilities: str) -> str:
+    specs = {
+        'Affliction Warlock':['Unstable Affliction', 'Agony', 'Corruption'],
+        'Destruction Warlock':['Incinerate', 'Immolate', 'Chaos Bolt'],
+        'Beastmaster Hunter':['Kill Command', 'Cobra Shot', 'Dire Beast'],
+        'Fire Mage':['Pyroblast', 'Combustion', 'Ignite'],
+        'Arcane Mage':['Arcane Blast', 'Arcane Missiles', 'Arcane Barrage'],
+        'Survival Hunter':['Explosive Shot', 'Serpent Sting', 'Black Arrow'],
+        'Feral Druid':['Shred', 'Rip', 'Ferocious Bite'],
+        'Enhancement Shaman':['Stormstrike', 'Lava Lash'],
+        'Shadow Priest':['Mind Blast', 'Devouring Plague', 'Mind Flay'],
+        'Demonology Warlock':['Doom', 'Immolation Aura', 'Hand of Guldan'],
+        'Frost DeathKnight':['Obliterate', 'Howling Blast', 'Frost Strike'],
+        'Assassination Rogue':['Mutilate', 'Envenom', 'Dispatch'],
+        'Balance Druid':['Starsurge', 'Moonfire', 'Sunfire'],
+        'Subtlety Rogue':['Hemorrhage', 'Backstab', 'Ambush'],
+        'Windwalker Monk':['Fists of Fury', 'Rising Sun Kick'],
+        'Retribution Paladin':["Templar's Verdict", 'Execution Sentence', 'Divine Storm'],
+        'Arms Warrior':['Mortal Strike', 'Overpower', 'Sweeping Strikes'],
+        'Elemental Shaman':['Lava Burst'],
+        'Combat Rogue':['Sinister Strike', 'Revealing Strike', 'Main Gauche', 'Blade Flurry'],
+        'Fury Warrior':['Bloodthirst', 'Wild Strike'],
+        'Frost Mage':['Frostbolt', 'Frostfire Bolt', 'Ice Lance'],
+        'Marksmanship Hunter':['Chimera Shot', 'Aimed Shot'],
+        'Blood DeathKnight':['Death Strike', 'Heart Strike', 'Blood Boil'],
+        'Unholy DeathKnight':['Festering Strike', 'Scourge Strike'],
+        'Brewmaster Monk':['Keg Smash'],
+        'Protection Warrior':['Shield Slam'],
+        'Protection Paladin':['Shield of the Righteous'],
+        'Guardian Druid':['Maul', 'Pulverize']
+    }
+    for ability in abilities:
+        for spec in specs:
+            if ability in specs[spec]:
+                return spec
+    return ''
+```
+
+This helper function takes in a list of ability names and returns the corresponding specialization that an ability is linked to. All of the specializations within the game have unique abilities that can be used to differentiate themselves from other specs. We will be using these abilities in order to determine which specializaiton a specific player's character is. If there are no specs that correspond to any of the provided abilities, a blank String is returned to the user.
+
+Step 4b, parse a single fight for the information we will be using for our analysis:
+
+```python
+def get_damage_for_fight(token: dict, code: str, id: int, delta_time: int, fight_name: str) -> list:
+    query = '''query($code:String, $fight_id:Int) {
+                reportData{
+                    report(code:$code){
+                        table(fightIDs: [$fight_id], dataType: DamageDone) 
+                    }
+                }
+            }'''
+    resp = get_information(token, query=query, code=code, fight_id=id)
+    formatted_resp = resp['data']['reportData']['report']['table']['data']['entries']
+    damage_information = []
+    for player in formatted_resp:
+        abilities = []
+        for a in player['abilities']:
+            abilities.append(a['name'])
+        top_abilities = None
+        if len(abilities) >= 5: 
+            top_abilities = abilities[:5]
+        else:
+            top_abilities = abilities
+        spec = get_spec_from_abilities(top_abilities)
+        if spec == '':
+            continue
+        dps = round(float(player['total'] / (delta_time / 1000)), 2)
+        if 'itemLevel' not in player:
+            continue
+        ilvl = player['itemLevel']
+        damage_information.append([spec, dps, ilvl, fight_name, delta_time])
+    return damage_information
+```
+
+This function uses the access token, a URL code, a fight ID, the fight length, and a fight name in order to provide the user with a list of character information. The response from the server after the query is sent contains a table that houses most of the requested individual fight's information. We iterate through the players involved within the fight and append certain data to a list. If certain data is not found within the current iterable, that character is skipped and the process continues with the next. The lack of some data signifies that the character is not directly controlled by a player and is thus not being used for this analysis. This list is then returned to the user.
+
+Step 5, combine the use of all the previous functions to create a CSV-typed text document that will be used for analysis:
+
+```python
+def gather_data(client_id: str, client_secret: str, report_codes: str) -> None:
+    access_token = get_access_token(client_id, client_secret).json()
+    with open(report_codes, 'r+') as f:
+        for current_code in f.readlines():
+            fights = get_fights_from_url_code(access_token, current_code)
+            with open('my_damage.txt', 'a+') as f:
+                for fight in fights:
+                    delta_time = fight['endTime'] - fight['startTime']
+                    fight_name = fight['name']
+                    damage_for_fight = get_damage_for_fight(access_token, current_code, fight['id'], delta_time, fight_name)
+                    for player in damage_for_fight:
+                        write_line = ''
+                        for element_index in range(len(player)):
+                            write_line += str(player[element_index])
+                            if element_index < len(player) - 1:
+                                write_line += ','
+                            else:
+                                write_line += '\n'
+                        f.write(write_line)
+```
+
+This function is the "brain" of the code. It takes in the client information and the name of a file that contains URL codes. For each code within the provided file we will iterate through each fight, further iterate through each character within the fight, and then write that character information within a new file. Each line within our resulting data file will contain the following:
+1. The specialization of an individual character during an individual fight.
+2. The DPS said character did during the fight.
+3. The item level of the character.
+4. The name of the fight that this character's information corresponds to.
+5. The length of the fight in milliseconds.
+
+The code does not provide column names within the file so the information is to be appended into a file with the column names already written in.
+
 # Data Visualization
 # Insights
