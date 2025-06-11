@@ -208,4 +208,11 @@ This function is the "brain" of the code. It takes in the client information and
 The code does not provide column names within the file so the information is to be appended into a file with the column names already written in.
 
 # Data Visualization
+
+We have collected and formatted the data; it's time to visualize. We will be using Tableau Public for this part. Tableau Public is a free and public version of Tableau that gives the user powerful tools for data visualization. 
+
+<img align="right" src="https://github.com/mjd-programming/MoP-Classic-Raid-Testing-Analysis/blob/main/Pictures/Screenshot%202025-06-10%20at%2012.25.19%E2%80%AFPM.png" style="width: 300px; height: auto;">
+To start, we will create a new project and add our CSV-formatted text file as a data source. After that, we will create a sheet that shows the relathionship between a specialization and the average DPS of that specialization. The image to the right is what we are initially given.
+
+
 # Insights
