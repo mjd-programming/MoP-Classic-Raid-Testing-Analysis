@@ -9,7 +9,7 @@
 Recently, the classic team at Blizzard has decided to give players early-access to this expansion through the use of a public beta. In this public beta players are asked to test out their ideas and provide feedback to Blizzard in hopes to provide a more polished full-access experience. These ideas are asked to be tested in PvP arenas and battle ground as well as the expansion's introductory raid, Mogushan Vaults.
 
 # Overview
-In this analysis, we will be looking into the raid data in hopes of gaining more insight into the characters being played. The data flow of this project is the following:
+In this analysis, we will be looking into the raid data in hopes of gaining more insight into the characters being played. With this insight, we can save time by choosing which character we play based on a number of factors. The data flow of this project is the following:
 
 1. Gather raw data from the video game's most popular combat log analysis website, [WarcraftLogs](https://www.warcraftlogs.com "WarcraftLogs")
 2. Transform the raw data into more digestable snippets that can be used for analysis
@@ -19,6 +19,7 @@ In this analysis, we will be looking into the raid data in hopes of gaining more
 ### Important Keywords and Abbreviations
 - <ins>**Class**</ins>: A permanent classification of a playable character. Each class is unique from one another and defines how you play the game.
 - <ins>**Spec**</ins>: A specialization of a class that provides characters with special abilities and an inherant role.
+- <ins>**(Spec)(Class)**</ins>: This is the primary way that a character is referred to; the specialization followed by the class.
 - <ins>**Role**</ins>: A job that each player is "assigned" to complete while within group-focused gameplay.
 - <ins>**Raid**</ins>: A group-focused zone within the game filled with unique non-playable characters (NPC), challenges, and rewards.
 - <ins>**Boss**</ins>: A special and reward-dropping NPC within a raid whom is greater than the other NPCs within the raid.
@@ -209,10 +210,18 @@ The code does not provide column names within the file so the information is to 
 
 # Data Visualization
 
-We have collected and formatted the data; it's time to visualize. We will be using Tableau Public for this part. Tableau Public is a free and public version of Tableau that gives the user powerful tools for data visualization. 
+We have collected and formatted the data; it's time to visualize. We will be using Tableau Public for this part. Tableau Public is a free and public version of Tableau that gives the user powerful tools for data visualization.
 
-<img align="right" src="https://github.com/mjd-programming/MoP-Classic-Raid-Testing-Analysis/blob/main/Pictures/Screenshot%202025-06-10%20at%2012.25.19%E2%80%AFPM.png" style="width: 300px; height: auto;">
-To start, we will create a new project and add our CSV-formatted text file as a data source. After that, we will create a sheet that shows the relathionship between a specialization and the average DPS of that specialization. The image to the right is what we are initially given.
+To start, we will create a new project and add our CSV-formatted text file as a data source. When the data source is added we manually update the data source to ensure that our data has correctly populated the corresponding fields within Tableau. After that, we will create an initial sheet. This sheet will be used to show the relathionship between a specialization and the average DPS of that specialization. The DPS field is added to the rows and the specialization field is added to the columns. Immediately I notice that there were incorrectly assigned specializations, both due to naming conventions as well as values, that I was going to have to remove. The below image is what we are initially given.
 
+![Initial Graph](https://github.com/mjd-programming/MoP-Classic-Raid-Testing-Analysis/blob/main/Pictures/initial_graph.png)
 
+After we trim the unusable data from our graph we begin to color coordinate the specializations based on their respective class. The colors are loosely linked to their in-game corresponding colors. You can explore the exact values of these colors as well as colors of classes that are not present in this analysis at this [link](https://wowpedia.fandom.com/wiki/Class_colors "WoW Class Colors"). The image below is what our sheet currently looks like.
+
+This sheet helps bring up the idea that involving previously known information can also aid in analysis. While an initial look at this graph could show that the Survival Hunter seems to have a statistically huge leg up in the competition, the real issue can be found when looking at the Elemental Shaman bar. This analysis only focuses on the Tank and Damage Dealer roles but the information we gathered from WarcraftLogs contains all of the roles. The Shaman role that is not being shown has the capability of being incorrectly flagged as an Elemental Shaman within the Python code. This results in the bar height being lower than it should be. The function shown within the code section contains the correct version of the Elemental Shaman ability list. The image below is what our sheet currently looks like.
+
+![Colored Graph](https://github.com/mjd-programming/MoP-Classic-Raid-Testing-Analysis/blob/main/Pictures/average_dps_per_spec_sheet.png)
+
+After making some "helper" sheets, we create our dashboard. The Tableau dashboard is the avenue that allows users to interact with the data. The final dashboard shows us a list of all the analyzed specializations with filters on the top-right and a popularity graph on the bottom-right. The major use case of this dashboard is as follows:
+- S
 # Insights
